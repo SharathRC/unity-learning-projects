@@ -45,7 +45,7 @@ public class MeshGenerator : MonoBehaviour
         };
     }
 
-    void update()
+    void Update()
     {
         moveVertices();
         updateMesh();
@@ -54,6 +54,10 @@ public class MeshGenerator : MonoBehaviour
 
     private void moveVertices()
     {
-        
+        for(var i = 0; i < vertices.Length; i++)
+        {
+            vertices[i].y += 1;
+            print(vertices);
+        } 
     }
 }
