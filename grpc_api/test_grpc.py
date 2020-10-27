@@ -14,7 +14,7 @@ import color_pb2_grpc
 class ColorGeneratorServicer(color_pb2_grpc.ColorGeneratorServicer):
     def GetRandomColor(self, request, context):
         print(context)
-        return color_pb2.NewColor(color='27')
+        return color_pb2.NewColor(color='newcolor')
 
 
 def serve():

@@ -7,7 +7,7 @@ public class ColorClient {
     private readonly ColorGenerator.ColorGeneratorClient _client;
     private readonly Channel _channel;
     // private readonly string _server = "127.0.0.1:50051";
-    private readonly string _server = "ḷocalhost:50051";
+    private readonly string _server = "localhost:50051";
 
     internal ColorClient() {
         _channel = new Channel(_server, ChannelCredentials.Insecure);
