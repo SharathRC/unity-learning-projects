@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package protoicp;
+
+
+service CalcTransform {
+    rpc getTransform (ObjectClouds) returns (Transform) {}
+}
+
+
+message Transform {
+    repeated float vals = 1;
+}
+
+message Point {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Cloud {
+    repeated Point points = 1;
+}
+
+message ObjectClouds {
+    repeated Cloud clouds = 1;
+}
+
+
+// python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. ./color.proto
+// protoc -I . --csharp_out=. --grpc_out=. --plugin=protoc-gen-grpc="C:\Users\cwc5421\Downloads\grpc.tools.2.26.0\tools\windows_x64\grpc_csharp_plugin.exe" color.proto
+// protoc -I . --csharp_out=. --grpc_out=. --plugin=protoc-gen-grpc="C:\Users\cwc5421\Downloads\Grpc.Tools.2.26.0-dev201912021138\tools\windows_x64\grpc_csharp_plugin.exe" color.proto
+
+// protoc -I . --csharp_out=. --grpc_out=. --plugin=protoc-gen-grpc=”Z:\unity-projects\grpc.tools.2.26.0\tools\windows_x64\grpc_csharp_plugin.exe” color.proto
