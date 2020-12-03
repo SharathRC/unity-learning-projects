@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
-public class IcpClient {
+public class IcpClient : MonoBehaviour{
     // public static List<string> items = new List<string>();
     
     private readonly CalcTransform.CalcTransformClient _client;
@@ -17,90 +17,68 @@ public class IcpClient {
         _client = new CalcTransform.CalcTransformClient(_channel);
     }
 
-    internal string getTransform() {
-        Point pt1 = new Point
-        {
-            X = 0.0f,
-            Y = 0.0f,
-            Z = 0.0f
-        };
-        
-        Point pt2 = new Point
-        {
-            X = 1.0f,
-            Y = 0.0f,
-            Z = 0.0f
-        };
-        
-        Point pt3 = new Point        
-        {
-            X = 0.0f,
-            Y = 1.0f,
-            Z = 0.0f
-        };
-        
-        Point pt4 = new Point
-        {
-            X = 0.0f,
-            Y = 0.0f,
-            Z = 1.0f
-        };
-        
-        Point pt5 = new Point        
-        {
-            X = 1.0f,
-            Y = 1.0f,
-            Z = 1.0f
-        };
-        
-        Point pt6 = new Point        
-        {
-            X = 2.0f,
-            Y = 0.0f,
-            Z = 0.0f
-        };
-        
-        Point pt7 = new Point        
-        {
-            X = 0.0f,
-            Y = 2.0f,
-            Z = 0.0f
-        };
-        
-        Point pt8 = new Point        
-        {
-            X = 0.0f,
-            Y = 0.0f,
-            Z = 2.0f
-        };
-        
-        Google.Protobuf.Collections.RepeatedField<Point> pts = new Google.Protobuf.Collections.RepeatedField<Point>();
-        pts.Add(pt1);
-        pts.Add(pt2);
+    List<Point> vector2points(List<Vector3> vector_pts )
+    {   
+        List<Point> pts = new List<Point>();
+        for(int i=0; i<vector_pts.Count; i++)
+        {   
+            float x = vector_pts[i].x;
+            float y = vector_pts[i].y;
+            float z = vector_pts[i].z;
+            Point p = new Point
+            {
+                X = x,
+                Y = y,
+                Z = z
+            };
+            pts.Add(p);
+        }
+        return pts;
+    }
 
-        Cloud cloud1 = new Cloud
+    Cloud vector2cloud(List<Vector3> vector_pts )
+    {   
+        Cloud cloud = new Cloud
+        {
+            Points = {}
+        };
+        for(int i=0; i<vector_pts.Count; i++)
+        {   
+            float x = vector_pts[i].x;
+            float y = vector_pts[i].y;
+            float z = vector_pts[i].z;
+            Point p = new Point
+            {
+                X = x,
+                Y = y,
+                Z = z
+            };
+            cloud.Points.Add(p);
+        }
+        return cloud;
+    }
+
+    internal string getTransform(List<Vector3> new_world_pts, List<Vector3> old_world_pts) 
+    {
+
+        // List<Point> pts_new = new List<Point>();
+
+        Cloud cloud_old = new Cloud
         {
             Points = {}
         };
 
-        cloud1.Points.Add(pt1);
-        cloud1.Points.Add(pt2);
-        cloud1.Points.Add(pt3);
-        cloud1.Points.Add(pt4);
-
-        Cloud cloud2 = new Cloud
+        Cloud cloud_new = new Cloud
         {
-            Points = { pt5, pt6, pt7, pt8 }
+            Points = {}
         };
+
+        cloud_new = vector2cloud(new_world_pts);
+        cloud_old = vector2cloud(old_world_pts);
         
-        Cloud cloud3 = new Cloud
-        {
-            // Points = {}
-        };
-
         ObjectClouds objClouds = new ObjectClouds
         {
-            Clouds = {cloud2, cloud1}
+            Clouds = {cloud_old, cloud_new}
         };
 
         var res = _client.getTransform(objClouds);
