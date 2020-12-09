@@ -17,24 +17,6 @@ public class IcpClient : MonoBehaviour{
         _client = new CalcTransform.CalcTransformClient(_channel);
     }
 
-    List<Point> vector2points(List<Vector3> vector_pts )
-    {   
-        List<Point> pts = new List<Point>();
-        for(int i=0; i<vector_pts.Count; i++)
-        {   
-            float x = vector_pts[i].x;
-            float y = vector_pts[i].y;
-            float z = vector_pts[i].z;
-            Point p = new Point
-            {
-                X = x,
-                Y = y,
-                Z = z
-            };
-            pts.Add(p);
-        }
-        return pts;
-    }
 
     Cloud vector2cloud(List<Vector3> vector_pts )
     {   
@@ -61,8 +43,6 @@ public class IcpClient : MonoBehaviour{
     internal string getTransform(List<Vector3> new_world_pts, List<Vector3> old_world_pts) 
     {
 
-        // List<Point> pts_new = new List<Point>();
-
         Cloud cloud_old = new Cloud
         {
             Points = {}
@@ -82,7 +62,7 @@ public class IcpClient : MonoBehaviour{
         };
 
         var res = _client.getTransform(objClouds);
-        Debug.Log("Client is currently running");
+        // Debug.Log("Client is currently running");
         Debug.Log(res);
 
         return "test";

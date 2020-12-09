@@ -6,18 +6,17 @@ public class GrpcTester : MonoBehaviour
 {
     // private ColorClient _colorClient;
     private IcpClient _icpClient;
+    private Utilities _utilities;
     public Mesh mesh;
     public Vector3[] vertices;
-    // public Vector3[] old_world_pts = new Vector3[] {};
     public List<Vector3> old_world_pts = new List<Vector3>();
-    // public int[] numArray = new int[] {};  
-    // public Vector3[] new_worls_pts;
 
     // Start is called before the first frame update
     void Start()
     {
         // _colorClient = new ColorClient();
         _icpClient = new IcpClient();
+        _utilities = new Utilities();
         mesh = GetComponent<MeshFilter>().mesh;
         vertices = mesh.vertices;
     }
@@ -29,7 +28,9 @@ public class GrpcTester : MonoBehaviour
         for (var i = 0; i < vertices.Length; i++)
         {
             vertices[i] += Vector3.up * Time.deltaTime;
+            // print("vertice: " + vertices[i]);
             Vector3 worldPt = transform.TransformPoint(vertices[i]);
+            // print("worldpoint: " + worldPt);
             new_world_pts.Add(worldPt);
         }
 
@@ -46,6 +47,6 @@ public class GrpcTester : MonoBehaviour
         // print(newColorString);
         // print(res);
         old_world_pts = new_world_pts;
-        
+        _utilities.camera2world();
     }
 }
