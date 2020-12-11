@@ -6,35 +6,31 @@ using UnityEngine;
 // using MathNet.Numerics.LinearAlgebra.Double;
 
 public class Utilities : MonoBehaviour
-{   int[,] array = new int[4, 2];
-    public Vector3 offset = new Vector3(0, 1, 0);
-    Camera cam;
-
-    void Start()
-    {
-        cam = GetComponent<Camera>();
-    }
-
-    internal void camera2world()
+{
+    internal Matrix4x4 world2camera()
     {   
-        // Camera.main.transform.Rotate(90, 0, 0, Space.Self);
-        // Camera.main.transform.Rotate(90, 0, 0, Space.World);
-        // print(Camera.main.transform.position);
-        // print(Camera.main.transform.rotation);
-
-        // print("x local angle: " + Camera.main.transform.localEulerAngles.x);
-        // print("Y local angle: " + Camera.main.transform.localEulerAngles.y);
-        // print("z local angle: " + Camera.main.transform.localEulerAngles.z);
-
-        // print("x world angle: " + Camera.main.transform.rotation.x);
-        // print("Y world angle: " + Camera.main.transform.rotation.y);
-        // print("z world angle: " + Camera.main.transform.rotation.z);
-
-        Vector3 camoffset = new Vector3(0, 0, 0);
-        Matrix4x4 m = Matrix4x4.TRS(camoffset, Quaternion.identity, new Vector3(1, 1, 1));
-        // Camera.main.worldToCameraMatrix = m;
-
-        Debug.Log("Camera transformation matrix: " + Camera.main.worldToCameraMatrix);
+        Matrix4x4 world_T_camera = Matrix4x4.TRS(Camera.main.transform.position, Camera.main.transform.rotation, new Vector3(1, 1, 1));
+        // Debug.Log("Camera transformation matrix: " + Camera.main.worldToCameraMatrix);
+        // Debug.Log("matrix: " + world_T_camera);
+        return world_T_camera;
 
     }
+
+    internal Vector3[] transform_points(Vector3[] org_vertices, Matrix4x4 custom_transform)
+    {   
+        Vector3[] new_vertices = new Vector3[org_vertices.Length];
+        for (var i = 0; i < org_vertices.Length; i++)
+        {
+            var pt = custom_transform.MultiplyPoint3x4(org_vertices[i]);
+            new_vertices[i] = pt;
+        }
+
+        return new_vertices;
+    }
+
+    internal Vector3 GetVertexWorldPosition(Vector3 vertex, Transform owner)
+    {
+        return owner.localToWorldMatrix.MultiplyPoint3x4(vertex);
+    }
+
 }

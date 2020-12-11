@@ -63,7 +63,7 @@ public class IcpClient : MonoBehaviour{
 
         var res = _client.getTransform(objClouds);
         // Debug.Log("Client is currently running");
-        Debug.Log(res);
+        // Debug.Log(res);
 
         return "test";
     }
