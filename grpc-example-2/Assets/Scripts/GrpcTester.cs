@@ -9,13 +9,14 @@ public class GrpcTester : MonoBehaviour
     private Utilities _utilities;
     public Mesh mesh;
     internal Vector3[] vertices;
-    internal List<Vector3> old_world_pts = new List<Vector3>();
+    internal List<Vector3> old_in_camera_pts = new List<Vector3>();
     internal Matrix4x4 world_T_camera;
     Camera cam;
     public float cam_speed = 5.0f;
     internal bool camera_moved = false;
     internal Matrix4x4 world_T_local;
     internal Matrix4x4 local_T_camera;
+    internal Matrix4x4 camera_T_local;
 
     void Start()
     {
@@ -30,26 +31,32 @@ public class GrpcTester : MonoBehaviour
     {   
         world_T_local = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(1, 1, 1));
         Matrix4x4 local_T_world = world_T_local.inverse;
-        local_T_camera = local_T_world * world_T_camera;
 
         move_camera_with_arrows();
         world_T_camera = _utilities.world2camera();
+        local_T_camera = local_T_world * world_T_camera;
+        camera_T_local = local_T_camera.inverse;
 
         vertices = mesh.vertices;
-        var new_world_pts = get_mesh_world_points();
+        var new_in_camera_pts = get_vertices_in_camera();
+        var vertices_list = _utilities.vector3_to_list(vertices);
+        // _utilities.print_vertices(vertices_list);
+        // _utilities.print_vertices(new_in_camera_pts);
 
-        if (old_world_pts.Count == 0)
+        if (old_in_camera_pts.Count == 0)
         {
-            old_world_pts = new_world_pts;
-        }
-        
+            old_in_camera_pts = new_in_camera_pts;
+        }        
+
+        var camera_transform = _icpClient.getTransform(new_in_camera_pts, old_in_camera_pts);
+        // print(camera_transform);
+        transform_vertices(camera_transform.inverse);
         mesh.vertices = vertices;
         mesh.RecalculateBounds();
 
-        var camera_transform = _icpClient.getTransform(new_world_pts, old_world_pts);
+        old_in_camera_pts = new_in_camera_pts;
 
-        old_world_pts = new_world_pts;
-        world_T_camera = _utilities.world2camera();
+        // world_T_camera = _utilities.world2camera();
     }
 
     void move_camera_with_arrows()
@@ -77,35 +84,43 @@ public class GrpcTester : MonoBehaviour
         }
     }
 
-    List<Vector3> get_mesh_world_points()
+    void transform_vertices(Matrix4x4 camera_transform)
     {
-        List<Vector3> new_world_pts = new List<Vector3>();
+        List<Vector3> new_local_pts = new List<Vector3>();
         for (var i = 0; i < vertices.Length; i++)
         {
             // vertices[i] += Vector3.up * Time.deltaTime;
-            Vector3 world_pt = transform.TransformPoint(vertices[i]);
+            // Vector3 world_pt = transform.TransformPoint(vertices[i]);
 
-            
+            // print("wpt" + world_pt);
+            // print(world_T_local.MultiplyPoint3x4(vertices[i]));
 
             if (camera_moved)
             {
-                Vector3 camera_pt = local_T_camera.MultiplyPoint3x4(vertices[i]);
-
-                Matrix4x4 camera_T_world = world_T_camera.inverse;
-                Vector3 new_world_pt = camera_T_world.MultiplyPoint3x4(camera_pt);
-            
-                Vector3 local_pt = transform.InverseTransformPoint(new_world_pt);
-                vertices[i] = local_pt;
+                Vector3 new_local_pt = camera_transform.MultiplyPoint3x4(vertices[i]);
+                vertices[i] = new_local_pt;
                 
             }
 
-            print("wpt" + world_pt);
-            print("wtc" + world_T_camera);
-            print("tvc" + vertices[i]);
+            // print("wpt" + world_pt);
+            // print("wtc" + world_T_camera);
+            // print("tvc" + vertices[i]);
 
-            new_world_pts.Add(world_pt);
+            // new_local_pts.Add(new_local_pt);
         }
-        return new_world_pts;
+    }
+
+
+    List<Vector3> get_vertices_in_camera()
+    {
+        List<Vector3> new_in_camera_pts = new List<Vector3>();
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            Vector3 camera_pt = camera_T_local.MultiplyPoint3x4(vertices[i]);
+            new_in_camera_pts.Add(camera_pt);
+        }
+
+        return new_in_camera_pts;
     }
 
 }

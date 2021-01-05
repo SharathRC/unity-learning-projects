@@ -33,4 +33,25 @@ public class Utilities : MonoBehaviour
         return owner.localToWorldMatrix.MultiplyPoint3x4(vertex);
     }
 
+    internal List<Vector3> vector3_to_list(Vector3[] vertices)
+    {
+        List<Vector3> vertices_list = new List<Vector3>();
+        for (var i = 0; i < vertices.Length; i++)
+        {
+            vertices_list.Add(vertices[i]);
+        }
+
+        return vertices_list;
+    }
+
+    internal void print_vertices(List<Vector3> vertices)
+    {
+        print("------------------------------------");
+        for (var i = 0; i < vertices.Count; i++)
+        {
+            print(vertices[i]);
+        }
+        print("------------------------------------");
+    }
+
 }
