@@ -8,15 +8,17 @@ public class GrpcTester : MonoBehaviour
     private IcpClient _icpClient;
     private Utilities _utilities;
     public Mesh mesh;
-    internal Vector3[] vertices;
+    internal Vector3[] main_vertices;
     internal List<Vector3> old_in_camera_pts = new List<Vector3>();
-    internal Matrix4x4 world_T_camera;
+
     Camera cam;
     public float cam_speed = 5.0f;
     internal bool camera_moved = false;
-    internal Matrix4x4 world_T_local;
-    internal Matrix4x4 local_T_camera;
-    internal Matrix4x4 camera_T_local;
+
+    public GameObject object_for_camera;
+    internal Mesh object_for_camera_mesh;
+    internal Vector3[] object_for_camera_vertices;
+
 
     void Start()
     {
@@ -24,24 +26,24 @@ public class GrpcTester : MonoBehaviour
         _utilities = new Utilities();
         cam = GetComponent<Camera>();
         mesh = GetComponent<MeshFilter>().mesh;
-        vertices = mesh.vertices;
+        main_vertices = mesh.vertices;
+        object_for_camera_mesh = object_for_camera.GetComponent<MeshFilter>().mesh;
+        // object_for_camera_mesh = object_for_camera.mesh;
     }
 
     void Update()
     {   
-        world_T_local = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(1, 1, 1));
+        Matrix4x4 world_T_local = Matrix4x4.TRS(transform.position, transform.rotation, new Vector3(1, 1, 1));
         Matrix4x4 local_T_world = world_T_local.inverse;
 
         move_camera_with_arrows();
-        world_T_camera = _utilities.world2camera();
-        local_T_camera = local_T_world * world_T_camera;
-        camera_T_local = local_T_camera.inverse;
+        Matrix4x4 world_T_camera = _utilities.world2camera();
+        Matrix4x4 local_T_camera = local_T_world * world_T_camera;
+        Matrix4x4 camera_T_local = local_T_camera.inverse;
 
-        vertices = mesh.vertices;
-        var new_in_camera_pts = get_vertices_in_camera();
-        var vertices_list = _utilities.vector3_to_list(vertices);
-        // _utilities.print_vertices(vertices_list);
-        // _utilities.print_vertices(new_in_camera_pts);
+        main_vertices = mesh.vertices;
+        object_for_camera_vertices = object_for_camera_mesh.vertices;
+        var new_in_camera_pts = get_vertices_in_camera(main_vertices, camera_T_local);
 
         if (old_in_camera_pts.Count == 0)
         {
@@ -49,14 +51,16 @@ public class GrpcTester : MonoBehaviour
         }        
 
         var camera_transform = _icpClient.getTransform(new_in_camera_pts, old_in_camera_pts);
-        // print(camera_transform);
-        transform_vertices(camera_transform.inverse);
-        mesh.vertices = vertices;
-        mesh.RecalculateBounds();
+        // main_vertices = transform_vertices(main_vertices, camera_transform.inverse);
+
+        object_for_camera_vertices = transform_vertices(object_for_camera_vertices, camera_transform.inverse);
+        object_for_camera_mesh.vertices = object_for_camera_vertices;
+
+        // mesh.vertices = main_vertices;
+        // mesh.RecalculateBounds();
 
         old_in_camera_pts = new_in_camera_pts;
 
-        // world_T_camera = _utilities.world2camera();
     }
 
     void move_camera_with_arrows()
@@ -84,39 +88,28 @@ public class GrpcTester : MonoBehaviour
         }
     }
 
-    void transform_vertices(Matrix4x4 camera_transform)
+    Vector3[] transform_vertices(Vector3[] vertices_in, Matrix4x4 camera_transform)
     {
         List<Vector3> new_local_pts = new List<Vector3>();
-        for (var i = 0; i < vertices.Length; i++)
+        for (var i = 0; i < vertices_in.Length; i++)
         {
-            // vertices[i] += Vector3.up * Time.deltaTime;
-            // Vector3 world_pt = transform.TransformPoint(vertices[i]);
-
-            // print("wpt" + world_pt);
-            // print(world_T_local.MultiplyPoint3x4(vertices[i]));
-
             if (camera_moved)
             {
-                Vector3 new_local_pt = camera_transform.MultiplyPoint3x4(vertices[i]);
-                vertices[i] = new_local_pt;
+                Vector3 new_local_pt = camera_transform.MultiplyPoint3x4(vertices_in[i]);
+                vertices_in[i] = new_local_pt;
                 
             }
-
-            // print("wpt" + world_pt);
-            // print("wtc" + world_T_camera);
-            // print("tvc" + vertices[i]);
-
-            // new_local_pts.Add(new_local_pt);
         }
+        return vertices_in;
     }
 
 
-    List<Vector3> get_vertices_in_camera()
+    List<Vector3> get_vertices_in_camera(Vector3[] vertices_in, Matrix4x4 camera_T_local)
     {
         List<Vector3> new_in_camera_pts = new List<Vector3>();
-        for (var i = 0; i < vertices.Length; i++)
+        for (var i = 0; i < vertices_in.Length; i++)
         {
-            Vector3 camera_pt = camera_T_local.MultiplyPoint3x4(vertices[i]);
+            Vector3 camera_pt = camera_T_local.MultiplyPoint3x4(vertices_in[i]);
             new_in_camera_pts.Add(camera_pt);
         }
 
